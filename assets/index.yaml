@@ -20,4 +20,24 @@ entries:
     urls:
     - assets/hello-world/hello-world-0.1.0.tgz
     version: 0.1.0
-generated: "2025-08-22T16:41:14.755362584Z"
+  top-level-product:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= v2.12.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0'
+    apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-08-22T18:14:41.935147764Z"
+    description: top-level-product plugin
+    digest: d9a2dc3755e5420808a48243b8d8529c21ab332a28d8947d3c634691dfe9b5c4
+    name: top-level-product
+    type: application
+    urls:
+    - assets/top-level-product/top-level-product-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-08-22T18:14:41.93437582Z"
