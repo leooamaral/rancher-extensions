@@ -6,7 +6,7 @@ entries:
       catalog.cattle.io/namespace: cattle-ui-plugin-system
       catalog.cattle.io/os: linux
       catalog.cattle.io/permits-os: linux, windows
-      catalog.cattle.io/rancher-version: '>= v2.12.0'
+      catalog.cattle.io/rancher-version: '>= v2.10.0'
       catalog.cattle.io/scope: management
       catalog.cattle.io/ui-component: plugins
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0'
@@ -26,18 +26,18 @@ entries:
       catalog.cattle.io/namespace: cattle-ui-plugin-system
       catalog.cattle.io/os: linux
       catalog.cattle.io/permits-os: linux, windows
-      catalog.cattle.io/rancher-version: '>= v2.12.0'
+      catalog.cattle.io/rancher-version: '>= v2.10.0'
       catalog.cattle.io/scope: management
       catalog.cattle.io/ui-component: plugins
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0'
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2025-08-22T19:08:41.669035636Z"
+    created: "2025-08-22T19:18:34.693806951Z"
     description: top-level-product plugin
-    digest: 255d28b84da40ca5cac320d82b32b1e13bebe4ca58578a1b5b60b1bad45e5971
+    digest: 5c84f1df0faf791d91a0213bdd9bb52f5e25491ddb4fb252505b0082088ac6f2
     name: top-level-product
     type: application
     urls:
     - assets/top-level-product/top-level-product-0.1.0.tgz
     version: 0.1.0
-generated: "2025-08-22T19:08:41.6686796Z"
+generated: "2025-08-22T19:18:34.693445667Z"
