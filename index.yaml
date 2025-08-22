@@ -32,12 +32,12 @@ entries:
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0'
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2025-08-22T18:14:41.935147764Z"
+    created: "2025-08-22T19:08:41.669035636Z"
     description: top-level-product plugin
-    digest: d9a2dc3755e5420808a48243b8d8529c21ab332a28d8947d3c634691dfe9b5c4
+    digest: 255d28b84da40ca5cac320d82b32b1e13bebe4ca58578a1b5b60b1bad45e5971
     name: top-level-product
     type: application
     urls:
     - assets/top-level-product/top-level-product-0.1.0.tgz
     version: 0.1.0
-generated: "2025-08-22T18:14:41.93437582Z"
+generated: "2025-08-22T19:08:41.6686796Z"
