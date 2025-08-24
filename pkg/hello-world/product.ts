@@ -3,7 +3,6 @@ import { IPlugin } from '@shell/core/types';
 export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'helloWorld';
   const BLANK_CLUSTER = '_';
-  const CUSTOM_PAGE_NAME = 'page1';
 
   const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
@@ -12,7 +11,7 @@ export function init($plugin: IPlugin, store: any) {
     inStore: 'management',
     weight: 100,
     to: {
-      name: `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+      name: `${ YOUR_PRODUCT_NAME }-c-cluster`,
       params: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER,
