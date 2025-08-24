@@ -12,7 +12,6 @@ const routes = [
     meta: {
       product: YOUR_PRODUCT_NAME,
       cluster: BLANK_CLUSTER,
-      pkg: YOUR_PRODUCT_NAME,
     },
   },
 ];
