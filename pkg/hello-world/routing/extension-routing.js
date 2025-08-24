@@ -14,7 +14,7 @@ const routes = [
       product: YOUR_PRODUCT_NAME,
       cluster: BLANK_CLUSTER,
     },
-  },
+  }
 ];
 
 export default routes;

@@ -19,7 +19,4 @@ export function init($plugin: IPlugin, store: any) {
       },
     },
   });
-
-  // registering the defined pages as side-menu entries
-  basicType([CUSTOM_PAGE_NAME]);
 }
