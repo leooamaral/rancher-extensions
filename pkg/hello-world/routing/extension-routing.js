@@ -6,8 +6,8 @@ const YOUR_PRODUCT_NAME = 'helloWorld';
 
 const routes = [
   {
-    name: `${YOUR_PRODUCT_NAME}-c-cluster`,
-    path: `/${YOUR_PRODUCT_NAME}/c/:cluster`,
+    name: `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+    path: `/${YOUR_PRODUCT_NAME}/c/:cluster/${ CUSTOM_PAGE_NAME }`,
     component: Dashboard,
     meta: {
       product: YOUR_PRODUCT_NAME,
