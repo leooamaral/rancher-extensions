@@ -3,6 +3,7 @@ import Dashboard from '../pages/index.vue';
 
 const BLANK_CLUSTER = '_';
 const YOUR_PRODUCT_NAME = 'helloWorld';
+const CUSTOM_PAGE_NAME = 'page1';
 
 const routes = [
   {
