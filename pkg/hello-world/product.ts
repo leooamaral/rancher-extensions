@@ -3,8 +3,9 @@ import { IPlugin } from '@shell/core/types';
 export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'yourProductName';
   const BLANK_CLUSTER = '_';
+  const CUSTOM_PAGE_NAME = 'page1';
 
-  const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  const { product, virtualType, basicType } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
     icon: 'gear',
@@ -20,4 +21,19 @@ export function init($plugin: IPlugin, store: any) {
       },
     },
   });
+
+  // creating a custom page
+  virtualType({
+    labelKey: 'some.translation.key',
+    name:     CUSTOM_PAGE_NAME,
+    route:    {
+      name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+      params: {
+        product: YOUR_PRODUCT_NAME,
+        cluster: BLANK_CLUSTER
+      }
+    }
+  });
+  // registering the defined pages as side-menu entries
+  basicType([CUSTOM_PAGE_NAME]);
 }
