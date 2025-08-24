@@ -13,10 +13,9 @@ export function init($plugin: IPlugin, store: any) {
     weight: 100,
     to: {
       name: `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
-      path: `/${YOUR_PRODUCT_NAME}/c/:cluster/${ CUSTOM_PAGE_NAME }`,
       params: {
         product: YOUR_PRODUCT_NAME,
-        cluster: BLANK_CLUSTER,
+        cluster: BLANK_CLUSTER
       },
     },
   });
