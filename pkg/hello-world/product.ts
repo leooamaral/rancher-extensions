@@ -1,7 +1,7 @@
 import { IPlugin } from '@shell/core/types';
 
 export function init($plugin: IPlugin, store: any) {
-  const YOUR_PRODUCT_NAME = 'yourProductName';
+  const YOUR_PRODUCT_NAME = 'helloWorld';
   const BLANK_CLUSTER = '_';
   const CUSTOM_PAGE_NAME = 'page1';
 

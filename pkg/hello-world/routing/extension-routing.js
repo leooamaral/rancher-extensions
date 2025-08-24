@@ -2,7 +2,7 @@
 import Dashboard from '../pages/index.vue';
 
 const BLANK_CLUSTER = '_';
-const YOUR_PRODUCT_NAME = 'yourProductName';
+const YOUR_PRODUCT_NAME = 'helloWorld';
 
 const routes = [
   {
