@@ -5,7 +5,7 @@ export function init($plugin: IPlugin, store: any) {
   const BLANK_CLUSTER = '_';
   const CUSTOM_PAGE_NAME = 'page1';
 
-  const { product, basicType } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
     icon: 'gear',
@@ -15,7 +15,8 @@ export function init($plugin: IPlugin, store: any) {
       name: `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
       params: {
         product: YOUR_PRODUCT_NAME,
-        cluster: BLANK_CLUSTER
+        cluster: BLANK_CLUSTER,
+        pkg:     YOUR_PRODUCT_NAME
       },
     },
   });
