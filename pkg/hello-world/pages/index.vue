@@ -41,12 +41,13 @@
         </li>
       </ul>
 
-      <!-- Button below node details -->
+      <!-- Install Ollama button -->
       <button 
         @click="installOllama"
+        :disabled="installing"
         class="bg-blue-600 text-white p-2 rounded mt-2"
       >
-        Install Ollama on Selected Node
+        {{ installing ? 'Installing...' : 'Install Ollama on Selected Node' }}
       </button>
     </div>
 
@@ -60,7 +61,6 @@
   </div>
 </template>
 
-
 <script>
 import { MANAGEMENT } from '@shell/config/types';
 import jsyaml from 'js-yaml';
@@ -70,19 +70,20 @@ export default {
     return {
       clusters: [],
       nodesByCluster: {},
-      selectedCluster: null,  // full cluster object
-      selectedNode: null      // full node object
+      selectedCluster: null,
+      selectedNode: null,
+      installing: false
     };
   },
   async created() {
     try {
-      // Fetch clusters
+      // Fetch all clusters
       const res = await this.$store.dispatch('management/findAll', {
         type: MANAGEMENT.CLUSTER
       });
       this.clusters = res || [];
 
-      // Fetch nodes for all clusters
+      // Fetch nodes for each cluster
       for (const cluster of this.clusters) {
         try {
           const res = await this.$store.dispatch('management/request', {
@@ -101,7 +102,7 @@ export default {
   },
   watch: {
     selectedCluster() {
-      this.selectedNode = null; // reset selected node on cluster change
+      this.selectedNode = null; // reset node on cluster change
     }
   },
   methods: {
@@ -117,26 +118,44 @@ export default {
       return cond?.status === "True";
     },
 
+    // Fetch the first project in the cluster (default project)
+    async getDefaultProject(clusterId) {
+      const projects = await this.$store.dispatch('management/findAll', {
+        type: 'project',
+        opt: { url: `/v3/clusters/${clusterId}/projects` }
+      });
+      return projects[0];
+    },
+
     async installOllama() {
       if (!this.selectedCluster || !this.selectedNode) return;
 
-      const helmValues = {
-        replicaCount: 1,
-        image: { repository: 'ollama/ollama', tag: 'latest' },
-        nodeSelector: { "kubernetes.io/hostname": this.selectedNode.metadata.name },
-        resources: { limits: { cpu: "2", memory: "4Gi" } }
-      };
+      this.installing = true;
 
       try {
+        const project = await this.getDefaultProject(this.selectedCluster.id);
+        if (!project) {
+          alert('No project found in the selected cluster.');
+          this.installing = false;
+          return;
+        }
+
+        const helmValues = {
+          replicaCount: 1,
+          image: { repository: 'ollama/ollama', tag: 'latest' },
+          nodeSelector: { "kubernetes.io/hostname": this.selectedNode.metadata.name },
+          resources: { limits: { cpu: "2", memory: "4Gi" } }
+        };
+
         await this.$store.dispatch('management/create', {
           type: 'app',
           resource: {
             clusterId: this.selectedCluster.id,
+            projectId: project.id,
             name: 'ollama',
-            projectId: 'default', // adjust if needed
             chartName: 'ollama',
-            repoName: 'stable',   // adjust repo
-            targetNamespace: 'ollama',
+            repoName: 'stable', // adjust to your repo
+            targetNamespace: 'default',
             valuesYaml: jsyaml.dump(helmValues)
           }
         });
@@ -145,6 +164,8 @@ export default {
       } catch (err) {
         console.error('Failed to install Ollama chart', err);
         alert('Failed to install Ollama chart, check console.');
+      } finally {
+        this.installing = false;
       }
     }
   }
