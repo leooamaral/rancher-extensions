@@ -40,6 +40,14 @@
           </span>
         </li>
       </ul>
+
+      <!-- Button below node details -->
+      <button 
+        @click="installOllama"
+        class="bg-blue-600 text-white p-2 rounded mt-2"
+      >
+        Install Ollama on Selected Node
+      </button>
     </div>
 
     <div v-else-if="selectedCluster && (!nodesByCluster[selectedCluster.id] || !nodesByCluster[selectedCluster.id].length)">
@@ -52,27 +60,29 @@
   </div>
 </template>
 
+
 <script>
 import { MANAGEMENT } from '@shell/config/types';
+import jsyaml from 'js-yaml';
 
 export default {
   data() {
     return {
       clusters: [],
       nodesByCluster: {},
-      selectedCluster: null,  // store full cluster object
-      selectedNode: null      // store full node object
+      selectedCluster: null,  // full cluster object
+      selectedNode: null      // full node object
     };
   },
   async created() {
     try {
-      // Fetch all clusters
+      // Fetch clusters
       const res = await this.$store.dispatch('management/findAll', {
         type: MANAGEMENT.CLUSTER
       });
       this.clusters = res || [];
 
-      // Fetch nodes for all clusters in advance
+      // Fetch nodes for all clusters
       for (const cluster of this.clusters) {
         try {
           const res = await this.$store.dispatch('management/request', {
@@ -85,15 +95,13 @@ export default {
           this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: [] };
         }
       }
-
     } catch (err) {
       console.error('Failed to load clusters', err);
     }
   },
   watch: {
     selectedCluster() {
-      // Reset selected node when cluster changes
-      this.selectedNode = null;
+      this.selectedNode = null; // reset selected node on cluster change
     }
   },
   methods: {
@@ -107,6 +115,37 @@ export default {
     isReady(node) {
       const cond = node.status?.conditions?.find(c => c.type === "Ready");
       return cond?.status === "True";
+    },
+
+    async installOllama() {
+      if (!this.selectedCluster || !this.selectedNode) return;
+
+      const helmValues = {
+        replicaCount: 1,
+        image: { repository: 'ollama/ollama', tag: 'latest' },
+        nodeSelector: { "kubernetes.io/hostname": this.selectedNode.metadata.name },
+        resources: { limits: { cpu: "2", memory: "4Gi" } }
+      };
+
+      try {
+        await this.$store.dispatch('management/create', {
+          type: 'app',
+          resource: {
+            clusterId: this.selectedCluster.id,
+            name: 'ollama',
+            projectId: 'default', // adjust if needed
+            chartName: 'ollama',
+            repoName: 'stable',   // adjust repo
+            targetNamespace: 'ollama',
+            valuesYaml: jsyaml.dump(helmValues)
+          }
+        });
+
+        alert('Ollama chart installed successfully!');
+      } catch (err) {
+        console.error('Failed to install Ollama chart', err);
+        alert('Failed to install Ollama chart, check console.');
+      }
     }
   }
 };
