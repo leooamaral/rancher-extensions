@@ -15,6 +15,8 @@
 </template>
 
 <script>
+import { MANAGEMENT } from '@shell/config/types';
+
 export default {
   data() {
     return {
