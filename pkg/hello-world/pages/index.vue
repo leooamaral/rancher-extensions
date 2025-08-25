@@ -5,23 +5,23 @@
     <!-- Cluster dropdown -->
     <div class="mb-4">
       <label for="clusterSelect">Select Cluster:</label>
-      <select id="clusterSelect" v-model="selectedClusterId" class="border rounded p-1 ml-2">
+      <select id="clusterSelect" v-model="selectedCluster" class="border rounded p-1 ml-2">
         <option disabled value="">Select a cluster</option>
-        <option v-for="c in clusters" :key="c.id" :value="c.id">
+        <option v-for="c in clusters" :key="c.id" :value="c">
           {{ c.id }} — {{ c.metadata?.state?.name || 'unknown' }}
         </option>
       </select>
     </div>
 
     <!-- Node dropdown -->
-    <div v-if="selectedClusterId" class="mb-4">
+    <div v-if="selectedCluster" class="mb-4">
       <label for="nodeSelect">Select Node:</label>
-      <select id="nodeSelect" v-model="selectedNodeName" class="border rounded p-1 ml-2">
+      <select id="nodeSelect" v-model="selectedNode" class="border rounded p-1 ml-2">
         <option disabled value="">Select a node</option>
         <option 
-          v-for="n in nodesByCluster[selectedClusterId]" 
+          v-for="n in nodesByCluster[selectedCluster.id]" 
           :key="n.metadata.name" 
-          :value="n.metadata.name"
+          :value="n"
         >
           {{ n.metadata.name }} — Ready: {{ isReady(n) ? '✅' : '❌' }}
         </option>
@@ -29,23 +29,25 @@
     </div>
 
     <!-- Selected node details -->
-    <div v-if="selectedNodeName">
-      <h3>Details for node: {{ selectedNodeName }}</h3>
+    <div v-if="selectedNode" class="mt-4">
+      <h3>Details for node: {{ selectedNode.metadata.name }}</h3>
       <ul>
-        <li v-for="n in nodesByCluster[selectedClusterId]" 
-            v-if="n.metadata.name === selectedNodeName"
-            :key="n.metadata.name">
-          🖥️ <strong>{{ n.metadata.name }}</strong>
-          — Ready: {{ isReady(n) ? '✅' : '❌' }}
-          <span v-if="n.status.nodeInfo">
-            ({{ n.status.nodeInfo.kubeletVersion }})
+        <li>
+          🖥️ <strong>{{ selectedNode.metadata.name }}</strong>
+          — Ready: {{ isReady(selectedNode) ? '✅' : '❌' }}
+          <span v-if="selectedNode.status.nodeInfo">
+            ({{ selectedNode.status.nodeInfo.kubeletVersion }})
           </span>
         </li>
       </ul>
     </div>
 
-    <div v-else-if="selectedClusterId && (!nodesByCluster[selectedClusterId] || !nodesByCluster[selectedClusterId].length)">
+    <div v-else-if="selectedCluster && (!nodesByCluster[selectedCluster.id] || !nodesByCluster[selectedCluster.id].length)">
       No nodes found
+    </div>
+
+    <div v-else class="text-gray-500">
+      Select a cluster to see its nodes
     </div>
   </div>
 </template>
@@ -58,18 +60,19 @@ export default {
     return {
       clusters: [],
       nodesByCluster: {},
-      selectedClusterId: "",
-      selectedNodeName: ""
-    }
+      selectedCluster: null,  // store full cluster object
+      selectedNode: null      // store full node object
+    };
   },
   async created() {
     try {
+      // Fetch all clusters
       const res = await this.$store.dispatch('management/findAll', {
         type: MANAGEMENT.CLUSTER
       });
       this.clusters = res || [];
 
-      // fetch nodes for all clusters
+      // Fetch nodes for all clusters in advance
       for (const cluster of this.clusters) {
         try {
           const res = await this.$store.dispatch('management/request', {
@@ -88,9 +91,9 @@ export default {
     }
   },
   watch: {
-    selectedClusterId() {
+    selectedCluster() {
       // Reset selected node when cluster changes
-      this.selectedNodeName = "";
+      this.selectedNode = null;
     }
   },
   methods: {
