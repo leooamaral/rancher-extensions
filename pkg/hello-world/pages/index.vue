@@ -54,11 +54,11 @@ export default {
 
       for (const cluster of this.clusters) {
         try {
-          const nodes = await this.$store.dispatch('management/request', {
+          const res = await this.$store.dispatch('management/request', {
             url: `/k8s/clusters/${cluster.id}/v1/nodes`
           });
 
-          // Vue 3: reactivity-safe assignment
+          const nodes = res?.data || []; // ⚡ access data
           this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: nodes };
         } catch (err) {
           console.error(`Failed to fetch nodes for cluster ${cluster.id}`, err);
