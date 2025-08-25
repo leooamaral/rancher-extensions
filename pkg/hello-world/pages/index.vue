@@ -1,60 +1,51 @@
-<script>
-import { STEVE } from '@rancher/shell/plugins/steve';
+<template>
+  <div>
+    <h2 class="mb-2">Clusters</h2>
+    <ul>
+      <li v-for="c in clusters" :key="c.id">
+        {{ c.spec.displayName || c.id }}
+      </li>
+    </ul>
+  </div>
+</template>
 
+<script>
 export default {
   name: 'ClusterList',
-
   data() {
     return {
       clusters: []
     };
   },
-
   created() {
     // Start watching clusters
-    this.$store.dispatch(`${STEVE}/watch`, {
+    this.$store.dispatch('steve/watch', {
       type: 'management.cattle.io.cluster',
       watch: (event) => {
-        // event has: { type: 'ADDED'|'MODIFIED'|'DELETED', data: clusterObj }
-        if (event.type === 'ADDED') {
-          this.clusters.push(event.data);
-        } else if (event.type === 'MODIFIED') {
-          this.clusters = this.clusters.map(c =>
-            c.id === event.data.id ? event.data : c
-          );
-        } else if (event.type === 'DELETED') {
-          this.clusters = this.clusters.filter(c => c.id !== event.data.id);
+        const obj = event.object;
+
+        if (!obj?.id) {
+          return;
+        }
+
+        // Apply change locally
+        const existing = this.clusters.findIndex(c => c.id === obj.id);
+
+        if (event.type === 'ADDED' || event.type === 'MODIFIED') {
+          if (existing >= 0) {
+            this.$set(this.clusters, existing, obj);
+          } else {
+            this.clusters.push(obj);
+          }
+        } else if (event.type === 'DELETED' && existing >= 0) {
+          this.clusters.splice(existing, 1);
         }
       }
     });
   },
-
-  computed: {
-    activeClusters() {
-      return this.clusters.filter(c => {
-        // ✅ Keep local + downstream clusters
-        // Only show Active/Ready
-        if (c?.status?.phase) {
-          return c.status.phase.toLowerCase() === 'active';
-        }
-
-        const readyCondition = c?.status?.conditions?.find(
-          cond => cond.type === 'Ready'
-        );
-        return readyCondition?.status === 'True';
-      });
-    }
+  beforeDestroy() {
+    // Stop watching when component is destroyed
+    this.$store.dispatch('steve/forgetType', 'management.cattle.io.cluster');
   }
 };
 </script>
-
-<template>
-  <div>
-    <h2>Active Clusters (Live)</h2>
-    <ul>
-      <li v-for="c in activeClusters" :key="c.id">
-        {{ c.spec?.displayName || c.metadata?.name }}
-      </li>
-    </ul>
-  </div>
-</template>
