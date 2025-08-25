@@ -9,19 +9,6 @@
           {{ c.metadata?.state?.name || 'unknown' }}
           <span v-if="c.metadata?.state?.message">({{ c.metadata.state.message }})</span>
         </span>
-
-        <!-- Show cluster nodes -->
-        <ul class="ml-6 mt-2">
-          <li v-for="n in c.nodes" :key="n.id">
-            🖥️ <strong>{{ n.id }}</strong>
-            — {{ n.status?.nodeInfo?.kubeletVersion || 'unknown version' }}
-            <span v-if="n.status?.conditions">
-              (Ready: {{
-                (n.status.conditions.find(cond => cond.type === 'Ready') || {}).status
-              }})
-            </span>
-          </li>
-        </ul>
       </li>
     </ul>
   </div>
@@ -38,26 +25,28 @@ export default {
   },
   async created() {
     try {
-      const clusters = await this.$store.dispatch('management/findAll', {
+      const res = await this.$store.dispatch('management/findAll', {
         type: MANAGEMENT.CLUSTER
       });
+      this.clusters = res || [];
+      console.log('Clusters:', this.clusters);
 
-      this.clusters = clusters;
-
-      for (const c of this.clusters) {
+      for (const cluster of this.clusters) {
         try {
           const nodes = await this.$store.dispatch('management/findAll', {
             type: MANAGEMENT.NODE,
-            opt: { url: `/k8s/clusters/${c.id}/v1/nodes` }
+            opt: { url: `/k8s/clusters/${cluster.id}/v1/nodes` }
           });
-          this.$set(c, 'nodes', nodes);
-        } catch (e) {
-          console.warn(`Failed to fetch nodes for cluster ${c.id}`, e);
-          this.$set(c, 'nodes', []);
+
+          // Vue 3: assign normally, then replace array to trigger reactivity
+          cluster.nodes = nodes;
+          this.clusters = [...this.clusters];
+        } catch (err) {
+          console.error(`Failed to fetch nodes for cluster ${cluster.id}`, err);
+          cluster.nodes = [];
         }
       }
 
-      console.log('Clusters:', this.clusters);
     } catch (err) {
       console.error('Failed to load clusters', err);
     }
