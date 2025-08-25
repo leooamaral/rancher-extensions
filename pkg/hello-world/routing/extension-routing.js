@@ -5,7 +5,9 @@ const BLANK_CLUSTER = '_';
 const YOUR_PRODUCT_NAME = 'helloWorld';
 
 const routes = [
-  {
+{
+  parent: 'plain',
+  route : {
     name: `${ YOUR_PRODUCT_NAME }-c-cluster`,
     path: `/${YOUR_PRODUCT_NAME}/c/:cluster`,
     component: Dashboard,
@@ -15,6 +17,7 @@ const routes = [
       pkg:     YOUR_PRODUCT_NAME
     },
   }
+}
 ];
 
 export default routes;
