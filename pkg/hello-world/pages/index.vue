@@ -38,12 +38,13 @@ export default {
             opt: { url: `/k8s/clusters/${cluster.id}/v1/nodes` }
           });
 
-          // Vue 3: assign normally, then replace array to trigger reactivity
-          cluster.nodes = nodes;
-          this.clusters = [...this.clusters];
+          // put into mapping (reactive, since nodesByCluster is a plain object)
+          this.$set
+            ? this.$set(this.nodesByCluster, cluster.id, nodes) // Vue 2
+            : (this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: nodes }); // Vue 3
         } catch (err) {
           console.error(`Failed to fetch nodes for cluster ${cluster.id}`, err);
-          cluster.nodes = [];
+          this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: [] };
         }
       }
 
