@@ -2,35 +2,42 @@
   <div>
     <h2>Clusters</h2>
 
-    <ul>
-      <li v-for="c in clusters" :key="c.id">
-        <div>
-          <strong>{{ c.id }}</strong> — 
-          <span :class="stateColor(c.metadata?.state)">
-            {{ c.metadata?.state?.name || 'unknown' }}
-            <span v-if="c.metadata?.state?.message">({{ c.metadata.state.message }})</span>
-          </span>
-        </div>
-
-        <!-- Nodes -->
-        <div v-if="nodesByCluster[c.id] && nodesByCluster[c.id].length" class="ml-4 mt-2">
-          <h4>Nodes:</h4>
-          <ul>
-            <li v-for="n in nodesByCluster[c.id]" :key="n.metadata.name">
-              🖥️ <strong>{{ n.metadata.name }}</strong>
-              — Ready: {{ isReady(n) ? '✅' : '❌' }}
-              <span v-if="n.status.nodeInfo">
-                ({{ n.status.nodeInfo.kubeletVersion }})
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        <div v-else class="ml-4 mt-2 text-gray-500">
-          No nodes found
-        </div>
+    <!-- Cluster selection list -->
+    <ul class="mb-4">
+      <li 
+        v-for="c in clusters" 
+        :key="c.id"
+        @click="selectedClusterId = c.id"
+        :class="{'font-bold text-blue-600': selectedClusterId === c.id, 'cursor-pointer': true}"
+      >
+        {{ c.id }} — 
+        <span :class="stateColor(c.metadata?.state)">
+          {{ c.metadata?.state?.name || 'unknown' }}
+          <span v-if="c.metadata?.state?.message">({{ c.metadata.state.message }})</span>
+        </span>
       </li>
     </ul>
+
+    <!-- Nodes for selected cluster -->
+    <div v-if="selectedClusterId">
+      <h3>Nodes for cluster: {{ selectedClusterId }}</h3>
+      <ul v-if="nodesByCluster[selectedClusterId] && nodesByCluster[selectedClusterId].length">
+        <li v-for="n in nodesByCluster[selectedClusterId]" :key="n.metadata.name">
+          🖥️ <strong>{{ n.metadata.name }}</strong>
+          — Ready: {{ isReady(n) ? '✅' : '❌' }}
+          <span v-if="n.status.nodeInfo">
+            ({{ n.status.nodeInfo.kubeletVersion }})
+          </span>
+        </li>
+      </ul>
+      <div v-else class="text-gray-500">
+        No nodes found
+      </div>
+    </div>
+
+    <div v-else class="text-gray-500">
+      Select a cluster to see its nodes
+    </div>
   </div>
 </template>
 
@@ -41,7 +48,8 @@ export default {
   data() {
     return {
       clusters: [],
-      nodesByCluster: {}
+      nodesByCluster: {},
+      selectedClusterId: null
     }
   },
   async created() {
@@ -50,15 +58,13 @@ export default {
         type: MANAGEMENT.CLUSTER
       });
       this.clusters = res || [];
-      console.log('Clusters:', this.clusters);
 
       for (const cluster of this.clusters) {
         try {
           const res = await this.$store.dispatch('management/request', {
             url: `/k8s/clusters/${cluster.id}/v1/nodes`
           });
-
-          const nodes = res?.data || []; // ⚡ access data
+          const nodes = res?.data || [];
           this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: nodes };
         } catch (err) {
           console.error(`Failed to fetch nodes for cluster ${cluster.id}`, err);
