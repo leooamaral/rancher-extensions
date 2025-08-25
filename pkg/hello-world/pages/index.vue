@@ -2,21 +2,13 @@
   <div>
     <h2>Clusters</h2>
 
-    <!-- Cluster selection list -->
-    <ul class="mb-4">
-      <li 
-        v-for="c in clusters" 
-        :key="c.id"
-        @click="selectedClusterId = c.id"
-        :class="{'font-bold text-blue-600': selectedClusterId === c.id, 'cursor-pointer': true}"
-      >
-        {{ c.id }} — 
-        <span :class="stateColor(c.metadata?.state)">
-          {{ c.metadata?.state?.name || 'unknown' }}
-          <span v-if="c.metadata?.state?.message">({{ c.metadata.state.message }})</span>
-        </span>
-      </li>
-    </ul>
+    <!-- Cluster dropdown -->
+    <select v-model="selectedClusterId" class="border rounded p-1 mb-4">
+      <option disabled value="">Select a cluster</option>
+      <option v-for="c in clusters" :key="c.id" :value="c.id">
+        {{ c.id }} — {{ c.metadata?.state?.name || 'unknown' }}
+      </option>
+    </select>
 
     <!-- Nodes for selected cluster -->
     <div v-if="selectedClusterId">
@@ -49,7 +41,7 @@ export default {
     return {
       clusters: [],
       nodesByCluster: {},
-      selectedClusterId: null
+      selectedClusterId: ""
     }
   },
   async created() {
@@ -59,6 +51,7 @@ export default {
       });
       this.clusters = res || [];
 
+      // fetch nodes for all clusters in advance
       for (const cluster of this.clusters) {
         try {
           const res = await this.$store.dispatch('management/request', {
