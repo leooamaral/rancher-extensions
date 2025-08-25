@@ -42,20 +42,21 @@ export default {
         type: MANAGEMENT.CLUSTER
       });
 
-      for (const c of clusters) {
+      this.clusters = clusters;
+
+      for (const c of this.clusters) {
         try {
           const nodes = await this.$store.dispatch('management/findAll', {
             type: MANAGEMENT.NODE,
             opt: { url: `/k8s/clusters/${c.id}/v1/nodes` }
           });
-          c.nodes = nodes;
+          this.$set(c, 'nodes', nodes);
         } catch (e) {
           console.warn(`Failed to fetch nodes for cluster ${c.id}`, e);
-          c.nodes = [];
+          this.$set(c, 'nodes', []);
         }
       }
 
-      this.clusters = clusters;
       console.log('Clusters:', this.clusters);
     } catch (err) {
       console.error('Failed to load clusters', err);
