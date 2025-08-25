@@ -6,6 +6,8 @@
 </template>
 
 <script>
+import { MANAGEMENT } from '@shell/config/types';
+
 export default {
   data() {
     return {
@@ -14,7 +16,7 @@ export default {
   },
   async created() {
     try {
-      const res = await this.$store.dispatch('steve/findAll', { type: 'cluster' });
+      const res = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, });
       this.clusters = res;
       console.log('Clusters:', res);
     } catch (err) {
