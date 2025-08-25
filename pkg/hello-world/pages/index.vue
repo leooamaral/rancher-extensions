@@ -16,8 +16,12 @@
         <div v-if="nodesByCluster[c.id] && nodesByCluster[c.id].length" class="ml-4 mt-2">
           <h4>Nodes:</h4>
           <ul>
-            <li v-for="n in nodesByCluster[c.id]" :key="n.id">
-              {{ n.id }} — {{ n.state?.name || 'unknown' }}
+            <li v-for="n in nodesByCluster[c.id]" :key="n.metadata.name">
+              🖥️ <strong>{{ n.metadata.name }}</strong>
+              — Ready: {{ isReady(n) ? '✅' : '❌' }}
+              <span v-if="n.status.nodeInfo">
+                ({{ n.status.nodeInfo.kubeletVersion }})
+              </span>
             </li>
           </ul>
         </div>
@@ -50,14 +54,12 @@ export default {
 
       for (const cluster of this.clusters) {
         try {
-          const nodes = await this.$store.dispatch('management/findAll', {
-            type: MANAGEMENT.NODE,
-            opt: { url: `/k8s/clusters/${cluster.id}/v1/nodes` }
+          const nodes = await this.$store.dispatch('management/request', {
+            url: `/k8s/clusters/${cluster.id}/v1/nodes`
           });
 
-          this.$set
-            ? this.$set(this.nodesByCluster, cluster.id, nodes)
-            : (this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: nodes });
+          // Vue 3: reactivity-safe assignment
+          this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: nodes };
         } catch (err) {
           console.error(`Failed to fetch nodes for cluster ${cluster.id}`, err);
           this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: [] };
@@ -75,6 +77,10 @@ export default {
       if (state.transitioning) return 'text-yellow-600';
       if (state.error) return 'text-red-600';
       return 'text-gray-600';
+    },
+    isReady(node) {
+      const cond = node.status?.conditions?.find(c => c.type === "Ready");
+      return cond?.status === "True";
     }
   }
 };
