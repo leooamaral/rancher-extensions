@@ -11,6 +11,25 @@ entries:
       catalog.cattle.io/ui-component: plugins
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0'
     apiVersion: v2
+    appVersion: 0.1.2
+    created: "2025-08-25T13:38:35.491175031Z"
+    description: hello-world plugin
+    digest: a68442cc40619e81fadd12c8ff2d43ae0809cd94b592fd6b876b8bc3f194a345
+    name: hello-world
+    type: application
+    urls:
+    - assets/hello-world/hello-world-0.1.2.tgz
+    version: 0.1.2
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= v2.10.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0'
+    apiVersion: v2
     appVersion: 0.1.1
     created: "2025-08-25T13:20:43.603088885Z"
     description: hello-world plugin
@@ -59,4 +78,4 @@ entries:
     urls:
     - assets/top-level-product/top-level-product-0.1.0.tgz
     version: 0.1.0
-generated: "2025-08-25T13:20:43.602480445Z"
+generated: "2025-08-25T13:38:35.490774325Z"
