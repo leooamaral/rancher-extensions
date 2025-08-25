@@ -5,9 +5,9 @@
     <ul>
       <li v-for="c in clusters" :key="c.id">
         <strong>{{ c.id }}</strong> — 
-        <span :class="stateColor(c.state)">
-          {{ c.state?.name || 'unknown' }}
-          <span v-if="c.state?.message">({{ c.state.message }})</span>
+        <span :class="stateColor(c)">
+          {{ clusterState(c).name }}
+          <span v-if="clusterState(c).message">({{ clusterState(c).message }})</span>
         </span>
       </li>
     </ul>
@@ -15,8 +15,6 @@
 </template>
 
 <script>
-import { MANAGEMENT } from '@shell/config/types';
-
 export default {
   data() {
     return {
@@ -25,11 +23,11 @@ export default {
   },
   async created() {
     try {
-      const res = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, });
+      const res = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
       this.clusters = res || [];
 
       // watch for live updates
-      this.$store.dispatch('steve/watch', {
+      this.$store.dispatch('management/watch', {
         type: 'cluster',
         watch: (event) => {
           const obj = event.object || event;
@@ -37,11 +35,8 @@ export default {
 
           const idx = this.clusters.findIndex(c => c.id === obj.id);
           if (event.type === 'ADDED' || event.type === 'MODIFIED') {
-            if (idx >= 0) {
-              this.$set(this.clusters, idx, obj);
-            } else {
-              this.clusters.push(obj);
-            }
+            if (idx >= 0) this.$set(this.clusters, idx, obj);
+            else this.clusters.push(obj);
           } else if (event.type === 'DELETED' && idx >= 0) {
             this.clusters.splice(idx, 1);
           }
@@ -52,14 +47,27 @@ export default {
     }
   },
   beforeDestroy() {
-    this.$store.dispatch('steve/forgetType', 'cluster');
+    this.$store.dispatch('management/forgetType', 'cluster');
   },
   methods: {
-    stateColor(state) {
-      if (!state) return 'text-gray-600';
-      if (state.name === 'active' && !state.error) return 'text-green-600';
-      if (state.transitioning) return 'text-yellow-600';
-      if (state.error) return 'text-red-600';
+    // derive cluster state from Ready condition
+    clusterState(cluster) {
+      const ready = cluster?.status?.conditions?.find(c => c.type === 'Ready');
+      if (!ready) return { name: 'unknown', message: '', error: false, transitioning: false };
+
+      return {
+        name: ready.status.toLowerCase() === 'true' ? 'active' : 'error',
+        message: ready.message || 'Resource is not ready',
+        error: ready.status.toLowerCase() !== 'true',
+        transitioning: ready.status.toLowerCase() === 'unknown'
+      };
+    },
+
+    stateColor(cluster) {
+      const s = this.clusterState(cluster);
+      if (s.name === 'active' && !s.error) return 'text-green-600';
+      if (s.transitioning) return 'text-yellow-600';
+      if (s.error) return 'text-red-600';
       return 'text-gray-600';
     }
   }
