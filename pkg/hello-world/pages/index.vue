@@ -1,9 +1,22 @@
 <template>
   <div>
     <h2 class="mb-2">Clusters</h2>
-    <ul>
-      <li v-for="c in clusters" :key="c.id">
-        {{ c.spec.displayName || c.id }}
+
+    <div v-if="loading">
+      Loading clusters...
+    </div>
+
+    <div v-else-if="error">
+      <p class="text-red-500">Failed to load clusters: {{ error }}</p>
+    </div>
+
+    <ul v-else class="space-y-2">
+      <li v-for="c in clusters" :key="c.id" class="p-2 border rounded">
+        <strong>{{ c.spec?.displayName || c.id }}</strong>
+        <span class="ml-2 text-sm"
+              :class="statusColor(c)">
+          {{ clusterStatus(c) }}
+        </span>
       </li>
     </ul>
   </div>
@@ -14,38 +27,60 @@ export default {
   name: 'ClusterList',
   data() {
     return {
-      clusters: []
+      clusters: [],
+      loading: true,
+      error: null
     };
   },
-  created() {
-    // Start watching clusters
-    this.$store.dispatch('steve/watch', {
-      type: 'management.cattle.io.cluster',
-      watch: (event) => {
-        const obj = event.object;
+  async created() {
+    try {
+      // Initial fetch
+      const res = await this.$store.dispatch('steve/findAll', {
+        type: 'management.cattle.io.cluster'
+      });
 
-        if (!obj?.id) {
-          return;
-        }
+      this.clusters = res || [];
+      this.loading = false;
 
-        // Apply change locally
-        const existing = this.clusters.findIndex(c => c.id === obj.id);
+      // Watch for live updates
+      this.$store.dispatch('steve/watch', {
+        type: 'management.cattle.io.cluster',
+        watch: (event) => {
+          const obj = event.object;
+          if (!obj?.id) return;
 
-        if (event.type === 'ADDED' || event.type === 'MODIFIED') {
-          if (existing >= 0) {
-            this.$set(this.clusters, existing, obj);
-          } else {
-            this.clusters.push(obj);
+          const existing = this.clusters.findIndex(c => c.id === obj.id);
+
+          if (event.type === 'ADDED' || event.type === 'MODIFIED') {
+            if (existing >= 0) {
+              this.$set(this.clusters, existing, obj);
+            } else {
+              this.clusters.push(obj);
+            }
+          } else if (event.type === 'DELETED' && existing >= 0) {
+            this.clusters.splice(existing, 1);
           }
-        } else if (event.type === 'DELETED' && existing >= 0) {
-          this.clusters.splice(existing, 1);
         }
-      }
-    });
+      });
+    } catch (err) {
+      this.error = err.message || 'Unknown error';
+      this.loading = false;
+    }
   },
   beforeDestroy() {
-    // Stop watching when component is destroyed
     this.$store.dispatch('steve/forgetType', 'management.cattle.io.cluster');
+  },
+  methods: {
+    clusterStatus(cluster) {
+      return cluster?.status?.phase || 'Unknown';
+    },
+    statusColor(cluster) {
+      const phase = cluster?.status?.phase || '';
+      if (phase === 'Active') return 'text-green-600';
+      if (phase === 'Provisioning') return 'text-yellow-600';
+      if (phase === 'Error' || phase === 'Unavailable') return 'text-red-600';
+      return 'text-gray-600';
+    }
   }
 };
 </script>
