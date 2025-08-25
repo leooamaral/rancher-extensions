@@ -4,11 +4,27 @@
 
     <ul>
       <li v-for="c in clusters" :key="c.id">
-        <strong>{{ c.id }}</strong> — 
-        <span :class="stateColor(c.metadata?.state)">
-          {{ c.metadata?.state?.name || 'unknown' }}
-          <span v-if="c.metadata?.state?.message">({{ c.metadata.state.message }})</span>
-        </span>
+        <div>
+          <strong>{{ c.id }}</strong> — 
+          <span :class="stateColor(c.metadata?.state)">
+            {{ c.metadata?.state?.name || 'unknown' }}
+            <span v-if="c.metadata?.state?.message">({{ c.metadata.state.message }})</span>
+          </span>
+        </div>
+
+        <!-- Nodes -->
+        <div v-if="nodesByCluster[c.id] && nodesByCluster[c.id].length" class="ml-4 mt-2">
+          <h4>Nodes:</h4>
+          <ul>
+            <li v-for="n in nodesByCluster[c.id]" :key="n.id">
+              {{ n.id }} — {{ n.state?.name || 'unknown' }}
+            </li>
+          </ul>
+        </div>
+
+        <div v-else class="ml-4 mt-2 text-gray-500">
+          No nodes found
+        </div>
       </li>
     </ul>
   </div>
@@ -20,7 +36,8 @@ import { MANAGEMENT } from '@shell/config/types';
 export default {
   data() {
     return {
-      clusters: []
+      clusters: [],
+      nodesByCluster: {}
     }
   },
   async created() {
@@ -38,10 +55,9 @@ export default {
             opt: { url: `/k8s/clusters/${cluster.id}/v1/nodes` }
           });
 
-          // put into mapping (reactive, since nodesByCluster is a plain object)
           this.$set
-            ? this.$set(this.nodesByCluster, cluster.id, nodes) // Vue 2
-            : (this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: nodes }); // Vue 3
+            ? this.$set(this.nodesByCluster, cluster.id, nodes)
+            : (this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: nodes });
         } catch (err) {
           console.error(`Failed to fetch nodes for cluster ${cluster.id}`, err);
           this.nodesByCluster = { ...this.nodesByCluster, [cluster.id]: [] };
