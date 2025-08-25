@@ -1,20 +1,40 @@
 <template>
   <div>
-    <h2>Clusters</h2>
+    <h2>Clusters & Nodes</h2>
 
     <!-- Cluster dropdown -->
-    <select v-model="selectedClusterId" class="border rounded p-1 mb-4">
-      <option disabled value="">Select a cluster</option>
-      <option v-for="c in clusters" :key="c.id" :value="c.id">
-        {{ c.id }} — {{ c.metadata?.state?.name || 'unknown' }}
-      </option>
-    </select>
+    <div class="mb-4">
+      <label for="clusterSelect">Select Cluster:</label>
+      <select id="clusterSelect" v-model="selectedClusterId" class="border rounded p-1 ml-2">
+        <option disabled value="">Select a cluster</option>
+        <option v-for="c in clusters" :key="c.id" :value="c.id">
+          {{ c.id }} — {{ c.metadata?.state?.name || 'unknown' }}
+        </option>
+      </select>
+    </div>
 
-    <!-- Nodes for selected cluster -->
-    <div v-if="selectedClusterId">
-      <h3>Nodes for cluster: {{ selectedClusterId }}</h3>
-      <ul v-if="nodesByCluster[selectedClusterId] && nodesByCluster[selectedClusterId].length">
-        <li v-for="n in nodesByCluster[selectedClusterId]" :key="n.metadata.name">
+    <!-- Node dropdown -->
+    <div v-if="selectedClusterId" class="mb-4">
+      <label for="nodeSelect">Select Node:</label>
+      <select id="nodeSelect" v-model="selectedNodeName" class="border rounded p-1 ml-2">
+        <option disabled value="">Select a node</option>
+        <option 
+          v-for="n in nodesByCluster[selectedClusterId]" 
+          :key="n.metadata.name" 
+          :value="n.metadata.name"
+        >
+          {{ n.metadata.name }} — Ready: {{ isReady(n) ? '✅' : '❌' }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Selected node details -->
+    <div v-if="selectedNodeName">
+      <h3>Details for node: {{ selectedNodeName }}</h3>
+      <ul>
+        <li v-for="n in nodesByCluster[selectedClusterId]" 
+            v-if="n.metadata.name === selectedNodeName"
+            :key="n.metadata.name">
           🖥️ <strong>{{ n.metadata.name }}</strong>
           — Ready: {{ isReady(n) ? '✅' : '❌' }}
           <span v-if="n.status.nodeInfo">
@@ -22,13 +42,10 @@
           </span>
         </li>
       </ul>
-      <div v-else class="text-gray-500">
-        No nodes found
-      </div>
     </div>
 
-    <div v-else class="text-gray-500">
-      Select a cluster to see its nodes
+    <div v-else-if="selectedClusterId && (!nodesByCluster[selectedClusterId] || !nodesByCluster[selectedClusterId].length)">
+      No nodes found
     </div>
   </div>
 </template>
@@ -41,7 +58,8 @@ export default {
     return {
       clusters: [],
       nodesByCluster: {},
-      selectedClusterId: ""
+      selectedClusterId: "",
+      selectedNodeName: ""
     }
   },
   async created() {
@@ -51,7 +69,7 @@ export default {
       });
       this.clusters = res || [];
 
-      // fetch nodes for all clusters in advance
+      // fetch nodes for all clusters
       for (const cluster of this.clusters) {
         try {
           const res = await this.$store.dispatch('management/request', {
@@ -67,6 +85,12 @@ export default {
 
     } catch (err) {
       console.error('Failed to load clusters', err);
+    }
+  },
+  watch: {
+    selectedClusterId() {
+      // Reset selected node when cluster changes
+      this.selectedNodeName = "";
     }
   },
   methods: {
