@@ -113,10 +113,10 @@ export default {
     },
 
     async getDefaultProject(clusterId) {
-      const projects = await this.$store.dispatch('management/findAll', {
-        type: 'project',
-        opt: { url: `/v3/clusters/${clusterId}/projects` }
-      });
+      const projects = await this.$store.dispatch('rancher/findAll', {
+      type: 'project',
+      opt: { url: `/v3/clusters/${clusterId}/projects` }
+    });
       return projects[0];
     },
 
