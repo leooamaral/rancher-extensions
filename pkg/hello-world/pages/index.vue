@@ -23,7 +23,7 @@
           :key="n.metadata.name" 
           :value="n"
         >
-          {{ n.metadata.name }} — Ready: {{ isReady(n) ? '✅' : '❌' }}
+          {{ n.metadata.name }} — Ready: {{ isReady(n) ? 'yes' : 'no' }}
         </option>
       </select>
     </div>
@@ -34,7 +34,7 @@
       <ul>
         <li>
           🖥️ <strong>{{ selectedNode.metadata.name }}</strong>
-          — Ready: {{ isReady(selectedNode) ? '✅' : '❌' }}
+          — Ready: {{ isReady(selectedNode) ? 'yes' : 'no' }}
           <span v-if="selectedNode.status.nodeInfo">
             ({{ selectedNode.status.nodeInfo.kubeletVersion }})
           </span>
@@ -75,15 +75,14 @@ export default {
       installing: false
     };
   },
+
   async created() {
     try {
-      // Fetch all clusters
       const res = await this.$store.dispatch('management/findAll', {
         type: MANAGEMENT.CLUSTER
       });
       this.clusters = res || [];
 
-      // Fetch nodes for each cluster
       for (const cluster of this.clusters) {
         try {
           const res = await this.$store.dispatch('management/request', {
@@ -100,25 +99,19 @@ export default {
       console.error('Failed to load clusters', err);
     }
   },
+
   watch: {
     selectedCluster() {
-      this.selectedNode = null; // reset node on cluster change
+      this.selectedNode = null;
     }
   },
+
   methods: {
-    stateColor(state) {
-      if (!state) return 'text-gray-600';
-      if (state.name === 'active' && !state.error) return 'text-green-600';
-      if (state.transitioning) return 'text-yellow-600';
-      if (state.error) return 'text-red-600';
-      return 'text-gray-600';
-    },
     isReady(node) {
       const cond = node.status?.conditions?.find(c => c.type === "Ready");
       return cond?.status === "True";
     },
 
-    // Fetch the first project in the cluster (default project)
     async getDefaultProject(clusterId) {
       const projects = await this.$store.dispatch('management/findAll', {
         type: 'project',
@@ -142,27 +135,45 @@ export default {
 
         const helmValues = {
           replicaCount: 1,
-          image: { repository: 'ollama/ollama', tag: 'latest' },
-          nodeSelector: { "kubernetes.io/hostname": this.selectedNode.metadata.name },
-          resources: { limits: { cpu: "2", memory: "4Gi" } }
+          image: {
+            repository: 'ollama/ollama',
+            tag: 'latest'
+          },
+          nodeSelector: {
+            "kubernetes.io/hostname": this.selectedNode.metadata.name
+          },
+          resources: {
+            limits: {
+              cpu: "2",
+              memory: "4Gi"
+            }
+          }
+        };
+
+        const valuesYaml = jsyaml.dump(helmValues);
+
+        const appResource = {
+          type: 'apps.project.cattle.io.app',
+          metadata: {
+            name: 'ollama',
+            namespace: project.id.split(':')[1] // Get just the namespace part
+          },
+          spec: {
+            externalId: 'catalog://?catalog=stable&template=ollama&version=latest',
+            projectName: project.id,
+            targetNamespace: 'ollama', // optional: change if needed
+            valuesYaml
+          }
         };
 
         await this.$store.dispatch('management/create', {
-          type: 'app',
-          resource: {
-            clusterId: this.selectedCluster.id,
-            projectId: project.id,
-            name: 'ollama',
-            chartName: 'ollama',
-            repoName: 'stable', // adjust to your repo
-            targetNamespace: 'default',
-            valuesYaml: jsyaml.dump(helmValues)
-          }
+          type: 'apps.project.cattle.io.app',
+          resource: appResource
         });
 
         alert('Ollama chart installed successfully!');
       } catch (err) {
-        console.error('Failed to install Ollama chart', err);
+        console.error('Failed to install Ollama chart:', err);
         alert('Failed to install Ollama chart, check console.');
       } finally {
         this.installing = false;
