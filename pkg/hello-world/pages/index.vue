@@ -152,13 +152,24 @@ export default {
 
         await this.$store.dispatch('rancher/request', {
           method: 'post',
-          url: `/v1/catalog.cattle.io.clusterrepos/app-co?action=install`,
+          url: '/v1/apps.catalog.cattle.io.apps',
           data: {
-            chartName: 'ollama',
-            version: '1.16.0',
-            projectId: project.id,
-            targetNamespace: 'ollama',
-            values: helmValues
+            apiVersion: 'catalog.cattle.io/v1',
+            kind: 'App',
+            metadata: {
+              name: 'ollama-install',
+              namespace: 'default'
+            },
+            spec: {
+              chart: {
+                name: 'ollama',
+                version: '1.16.0',
+                repoName: 'app-co'
+              },
+              targetNamespace: 'default',
+              projectName: project.id,
+              values: helmValues
+            }
           }
         });
 
