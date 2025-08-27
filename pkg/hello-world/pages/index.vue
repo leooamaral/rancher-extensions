@@ -156,12 +156,12 @@ export default {
           type: 'apps.project.cattle.io.app',
           metadata: {
             name: 'ollama',
-            namespace: project.id.split(':')[1] // Get just the namespace part
+            namespace: project.id.split(':')[1]
           },
           spec: {
-            externalId: 'catalog://?catalog=app-co&template=ollama&version=1.16.0',
+            externalId: 'catalog://?catalog=app-co&type=cluster&template=ollama&version=1.16.0',
             projectName: project.id,
-            targetNamespace: 'ollama', // optional: change if needed
+            targetNamespace: 'ollama',
             valuesYaml
           }
         };
