@@ -150,28 +150,19 @@ export default {
           }
         };
 
-        const valuesYaml = jsyaml.dump(helmValues);
-
-        const appResource = {
-          type: 'apps.project.cattle.io.app',
-          metadata: {
-            name: 'ollama',
-            namespace: project.id.split(':')[1]
-          },
-          spec: {
-            externalId: 'catalog://?catalog=app-co&type=cluster&template=ollama&version=1.16.0',
-            projectName: project.id,
+        await this.$store.dispatch('rancher/request', {
+          method: 'post',
+          url: `/v1/catalog.cattle.io.clusterrepos/app-co?action=install`,
+          data: {
+            chartName: 'ollama',
+            version: '1.16.0',
+            projectId: project.id,
             targetNamespace: 'ollama',
-            valuesYaml
+            values: helmValues
           }
-        };
-
-        await this.$store.dispatch('management/create', {
-          type: 'apps.project.cattle.io.app',
-          resource: appResource
         });
 
-        alert('Ollama chart installed successfully!');
+        alert('Ollama chart installation requested!');
       } catch (err) {
         console.error('Failed to install Ollama chart:', err);
         alert('Failed to install Ollama chart, check console.');
