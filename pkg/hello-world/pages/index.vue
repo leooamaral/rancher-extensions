@@ -159,7 +159,7 @@ export default {
             namespace: project.id.split(':')[1] // Get just the namespace part
           },
           spec: {
-            externalId: 'catalog://?catalog=stable&template=ollama&version=latest',
+            externalId: 'catalog://?catalog=ollama&template=ollama&version=1.16.0',
             projectName: project.id,
             targetNamespace: 'ollama', // optional: change if needed
             valuesYaml
