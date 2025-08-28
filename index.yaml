@@ -12,9 +12,9 @@ entries:
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0'
     apiVersion: v2
     appVersion: 0.1.4
-    created: "2025-08-28T13:34:17.665319056Z"
+    created: "2025-08-28T13:42:19.041460043Z"
     description: hello-world plugin
-    digest: db645b5a6fa7ade95a95d4baf56baccb78e79bb5c6ed299f5dcb94f8f4e4d206
+    digest: 9b07804c9a9bcc2fcd0c929166d5b1b1050d66308908875168ad20e5303c2ace
     name: hello-world
     type: application
     urls:
@@ -116,4 +116,4 @@ entries:
     urls:
     - assets/top-level-product/top-level-product-0.1.0.tgz
     version: 0.1.0
-generated: "2025-08-28T13:34:17.66496927Z"
+generated: "2025-08-28T13:42:19.040693718Z"
