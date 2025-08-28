@@ -140,7 +140,7 @@ export default {
         const values = {
           replicaCount: 1,
           image: {
-            tag: 'latest'
+            tag: '0.6.8'
           },
           nodeSelector: {
             'kubernetes.io/hostname': this.selectedNode.metadata.name
