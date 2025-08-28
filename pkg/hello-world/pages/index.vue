@@ -152,6 +152,9 @@ export default {
             }
           },
           global: {
+            imagePullSecrets: [
+              { name: 'application-collection' }
+            ],
             cattle: {
               clusterId,
               clusterName: clusterId,
