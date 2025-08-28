@@ -119,7 +119,6 @@ export default {
     });
       return projects[0];
     },
-
     async installOllama() {
       if (!this.selectedCluster || !this.selectedNode) return;
 
@@ -134,20 +133,33 @@ export default {
         }
 
         const releaseName = `ollama-${this.selectedNode.metadata.name.toLowerCase()}`;
+        const clusterId = this.selectedCluster.id;
+        const projectId = project.id;
+        const targetNamespace = 'default';
 
-        const helmValues = {
+        const values = {
           replicaCount: 1,
           image: {
             repository: 'ollama/ollama',
             tag: 'latest'
           },
           nodeSelector: {
-            "kubernetes.io/hostname": this.selectedNode.metadata.name
+            'kubernetes.io/hostname': this.selectedNode.metadata.name
           },
           resources: {
             limits: {
-              cpu: "2",
-              memory: "4Gi"
+              cpu: '2',
+              memory: '4Gi'
+            }
+          },
+          global: {
+            cattle: {
+              clusterId,
+              clusterName: clusterId,
+              systemProjectId: projectId.split(':')[1], // just "p-xxxx"
+              url: window.location.origin,
+              rkePathPrefix: '',
+              rkeWindowsPathPrefix: ''
             }
           }
         };
@@ -156,15 +168,25 @@ export default {
           method: 'post',
           url: `/v1/catalog.cattle.io.clusterrepos/app-co?action=install`,
           data: {
-            chartName: 'ollama',
-            version: '1.16.0',
-            projectId: project.id,
-            targetNamespace: 'default',
-            releaseName, // this is critical
-            values: helmValues,
-            annotations: {
-              'catalog.cattle.io/ui-source-repo': 'app-co'
-            }
+            charts: [
+              {
+                chartName: 'ollama',
+                version: '1.16.0',
+                releaseName,
+                annotations: {
+                  'catalog.cattle.io/ui-source-repo-type': 'cluster',
+                  'catalog.cattle.io/ui-source-repo': 'app-co'
+                },
+                values
+              }
+            ],
+            namespace: targetNamespace,
+            projectId,
+            wait: true,
+            timeout: '600s',
+            noHooks: false,
+            disableOpenAPIValidation: false,
+            skipCRDs: false
           }
         });
 
