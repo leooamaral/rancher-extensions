@@ -140,7 +140,6 @@ export default {
         const values = {
           replicaCount: 1,
           image: {
-            repository: 'ollama/ollama',
             tag: 'latest'
           },
           nodeSelector: {
