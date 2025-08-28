@@ -133,6 +133,8 @@ export default {
           return;
         }
 
+        const releaseName = `ollama-${this.selectedNode.metadata.name.toLowerCase()}`;
+
         const helmValues = {
           replicaCount: 1,
           image: {
@@ -152,28 +154,21 @@ export default {
 
         await this.$store.dispatch('rancher/request', {
           method: 'post',
-          url: '/v1/apps.catalog.cattle.io.apps',
+          url: `/v1/catalog.cattle.io.clusterrepos/app-co?action=install`,
           data: {
-            apiVersion: 'catalog.cattle.io/v1',
-            kind: 'App',
-            metadata: {
-              name: 'ollama-install',
-              namespace: 'default'
-            },
-            spec: {
-              chart: {
-                name: 'ollama',
-                version: '1.16.0',
-                repoName: 'app-co'
-              },
-              targetNamespace: 'default',
-              projectName: project.id,
-              values: helmValues
+            chartName: 'ollama',
+            version: '1.16.0',
+            projectId: project.id,
+            targetNamespace: 'default',
+            releaseName, // this is critical
+            values: helmValues,
+            annotations: {
+              'catalog.cattle.io/ui-source-repo': 'app-co'
             }
           }
         });
 
-        alert('Ollama chart installation requested!');
+        alert(`Ollama installation requested as release: ${releaseName}`);
       } catch (err) {
         console.error('Failed to install Ollama chart:', err);
         alert('Failed to install Ollama chart, check console.');
