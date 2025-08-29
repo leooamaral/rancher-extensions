@@ -63,7 +63,6 @@
 
 <script>
 import { MANAGEMENT } from '@shell/config/types';
-import jsyaml from 'js-yaml';
 
 export default {
   data() {
@@ -114,11 +113,12 @@ export default {
 
     async getDefaultProject(clusterId) {
       const projects = await this.$store.dispatch('rancher/findAll', {
-      type: 'project',
-      opt: { url: `/v3/clusters/${clusterId}/projects` }
-    });
+        type: 'project',
+        opt: { url: `/v3/clusters/${clusterId}/projects` }
+      });
       return projects[0];
     },
+
     async installOllama() {
       if (!this.selectedCluster || !this.selectedNode) return;
 
@@ -132,10 +132,11 @@ export default {
           return;
         }
 
-        const releaseName = `ollama-${this.selectedNode.metadata.name.toLowerCase()}`;
         const clusterId = this.selectedCluster.id;
         const projectId = project.id;
+        const systemProjectId = projectId.includes(':') ? projectId.split(':')[1] : '';
         const targetNamespace = 'default';
+        const releaseName = `ollama-${this.selectedNode.metadata.name.toLowerCase()}`;
 
         const values = {
           replicaCount: 1,
@@ -158,7 +159,7 @@ export default {
             cattle: {
               clusterId,
               clusterName: clusterId,
-              systemProjectId: projectId.split(':')[1], // just "p-xxxx"
+              systemProjectId,
               url: window.location.origin,
               rkePathPrefix: '',
               rkeWindowsPathPrefix: ''
@@ -192,10 +193,10 @@ export default {
           }
         });
 
-        alert(`Ollama installation requested as release: ${releaseName}`);
+        alert(`✅ Ollama installation requested: ${releaseName}`);
       } catch (err) {
         console.error('Failed to install Ollama chart:', err);
-        alert('Failed to install Ollama chart, check console.');
+        alert('❌ Failed to install Ollama chart, check the console for details.');
       } finally {
         this.installing = false;
       }
