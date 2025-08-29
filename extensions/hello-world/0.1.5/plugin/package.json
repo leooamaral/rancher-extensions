@@ -1,0 +1,19 @@
+{
+  "name": "hello-world",
+  "description": "hello-world plugin",
+  "version": "0.1.5",
+  "private": false,
+  "rancher": true,
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "4.5.18",
+    "@vue/cli-service": "4.5.18",
+    "@vue/cli-plugin-typescript": "4.5.18"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "hello-world-0.1.5.umd.min.js"
+}
