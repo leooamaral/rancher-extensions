@@ -120,42 +120,27 @@ export default {
     },
 
     async installOllama() {
-      if (!this.selectedCluster || !this.selectedNode) return;
+      if (!this.selectedCluster) return;
 
       this.installing = true;
 
       try {
-        const project = await this.getDefaultProject(this.selectedCluster.id);
+        const cluster = this.selectedCluster;
+        const clusterId = cluster.id;
+
+        const project = await this.getDefaultProject(clusterId);
         if (!project) {
           alert('No project found in the selected cluster.');
-          this.installing = false;
           return;
         }
 
-        const clusterId = this.selectedCluster.id;
         const projectId = project.id;
         const systemProjectId = projectId.includes(':') ? projectId.split(':')[1] : '';
+        const releaseName = `ollama-${(this.selectedNode?.metadata?.name || 'cluster').toLowerCase()}`;
         const targetNamespace = 'default';
-        const releaseName = `ollama-${this.selectedNode.metadata.name.toLowerCase()}`;
 
         const values = {
-          replicaCount: 1,
-          image: {
-            tag: '0.6.8'
-          },
-          nodeSelector: {
-            'kubernetes.io/hostname': this.selectedNode.metadata.name
-          },
-          resources: {
-            limits: {
-              cpu: '2',
-              memory: '4Gi'
-            }
-          },
           global: {
-            imagePullSecrets: [
-              { name: 'application-collection' }
-            ],
             cattle: {
               clusterId,
               clusterName: clusterId,
@@ -167,22 +152,31 @@ export default {
           }
         };
 
+        // Only add nodeSelector if a node is selected
+        if (this.selectedNode?.metadata?.name) {
+          values.nodeSelector = {
+            'kubernetes.io/hostname': this.selectedNode.metadata.name
+          };
+        }
+
+        const charts = [
+          {
+            chartName: 'ollama',
+            version: '1.16.0',
+            releaseName,
+            annotations: {
+              'catalog.cattle.io/ui-source-repo-type': 'cluster',
+              'catalog.cattle.io/ui-source-repo': 'app-co'
+            },
+            values
+          }
+        ];
+
         await this.$store.dispatch('rancher/request', {
           method: 'post',
           url: `/v1/catalog.cattle.io.clusterrepos/app-co?action=install`,
           data: {
-            charts: [
-              {
-                chartName: 'ollama',
-                version: '1.16.0',
-                releaseName,
-                annotations: {
-                  'catalog.cattle.io/ui-source-repo-type': 'cluster',
-                  'catalog.cattle.io/ui-source-repo': 'app-co'
-                },
-                values
-              }
-            ],
+            charts,
             namespace: targetNamespace,
             projectId,
             wait: true,
@@ -196,7 +190,7 @@ export default {
         alert(`✅ Ollama installation requested: ${releaseName}`);
       } catch (err) {
         console.error('Failed to install Ollama chart:', err);
-        alert('❌ Failed to install Ollama chart, check the console for details.');
+        alert('❌ Failed to install Ollama chart. See console for details.');
       } finally {
         this.installing = false;
       }
