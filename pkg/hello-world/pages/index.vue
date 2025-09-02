@@ -128,10 +128,11 @@ export default {
         const cluster = this.selectedCluster;
         const clusterId = cluster.id;
 
-        console.log(cluster.name);
-        console.log(cluster.spec.displayName);
-        console.log(cluster.spec.name);
-        console.log(cluster.name);
+
+        const urlBase =
+          clusterId === 'local'
+            ? ``
+            : `/k8s/clusters/${clusterId}`;
 
         const project = await this.getDefaultProject(clusterId);
         if (!project) {
@@ -182,7 +183,7 @@ export default {
 
         await this.$store.dispatch('rancher/request', {
           method: 'post',
-          url: `/v1/catalog.cattle.io.clusterrepos/app-co?action=install`,
+          url: `${urlBase}/v1/catalog.cattle.io.clusterrepos/app-co?action=install`,
           data: {
             charts,
             namespace: targetNamespace,
