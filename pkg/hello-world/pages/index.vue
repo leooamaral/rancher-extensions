@@ -128,6 +128,11 @@ export default {
         const cluster = this.selectedCluster;
         const clusterId = cluster.id;
 
+        console.log(cluster.name);
+        console.log(cluster.spec.displayName);
+        console.log(cluster.spec.name);
+        console.log(cluster.name);
+
         const project = await this.getDefaultProject(clusterId);
         if (!project) {
           alert('No project found in the selected cluster.');
