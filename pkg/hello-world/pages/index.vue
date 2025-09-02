@@ -134,8 +134,12 @@ export default {
           return;
         }
 
-        const projectId = project.id;
-        const systemProjectId = projectId.includes(':') ? projectId.split(':')[1] : '';
+        let projectId = project.id;
+        if (projectId.includes(':')) {
+          const systemProjectId = projectId.split(':')[1];
+          projectId = `local/${systemProjectId}`;
+        }
+
         const releaseName = `ollama-${(this.selectedNode?.metadata?.name || 'cluster').toLowerCase()}`;
         const targetNamespace = 'default';
 
@@ -143,8 +147,8 @@ export default {
           global: {
             cattle: {
               clusterId,
-              clusterName: clusterId,
-              systemProjectId,
+              clusterName: cluster.spec.displayName || clusterId,
+              systemProjectId: projectId.split('/')[1],
               url: window.location.origin,
               rkePathPrefix: '',
               rkeWindowsPathPrefix: ''
@@ -152,7 +156,6 @@ export default {
           }
         };
 
-        // Only add nodeSelector if a node is selected
         if (this.selectedNode?.metadata?.name) {
           values.nodeSelector = {
             'kubernetes.io/hostname': this.selectedNode.metadata.name
