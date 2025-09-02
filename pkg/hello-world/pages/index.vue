@@ -8,8 +8,7 @@
       <select id="clusterSelect" v-model="selectedCluster" class="border rounded p-1 ml-2">
         <option disabled value="">Select a cluster</option>
         <option v-for="c in clusters" :key="c.id" :value="c">
-          {{ c.spec?.displayName || c.name || c.id }}
-          — {{ c.metadata?.state?.name || 'unknown' }}
+          {{ c.id }} — {{ c.metadata?.state?.name || 'unknown' }}
         </option>
       </select>
     </div>
